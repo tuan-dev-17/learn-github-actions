@@ -1,0 +1,45 @@
+name: Job Artifacts
+on: 
+  push: 
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci 
+      - name: Lint code 
+        run: npm run lint
+      - name: Test code
+        run: npm run test 
+  build: 
+    needs: test 
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout code 
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Build code
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4 # read more: https://github.com/actions/upload-artifact
+        with: 
+          name: dist-files 
+          path: dist # path to the folder to upload, can upload multiple folders or files
+  deploy: 
+    needs: build # only run this job if the build job is successful
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Get build artifacts
+        uses: actions/download-artifact@v4 # read more: https://github.com/actions/download-artifact
+        with: 
+          name: dist-files
+      - name: Display files
+        run: ls
+      - name: Deploy code
+        run: echo "Deploying code"
