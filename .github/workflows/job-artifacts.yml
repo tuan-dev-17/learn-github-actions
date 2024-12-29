@@ -19,6 +19,9 @@ jobs:
   build: 
     needs: test 
     runs-on: ubuntu-latest
+    outputs: 
+      script-file: ${{ steps.publish.outputs.js_filename }} # this is the identifier by which you later will be able to access the output value
+      # github actions context value: steps is the context above.
     steps: 
       - name: Checkout code 
         uses: actions/checkout@v3
@@ -26,6 +29,9 @@ jobs:
         run: npm ci
       - name: Build code
         run: npm run build
+      - name: Publish JS filename
+        id: publish
+        run: find dist/assets/*.js -type f -execdir echo 'js_filename={}' >> $GITHUB_OUTPUT ';'
       - name: Upload artifacts
         uses: actions/upload-artifact@v4 # read more: https://github.com/actions/upload-artifact
         with: 
@@ -41,5 +47,8 @@ jobs:
           name: dist-files
       - name: Display files
         run: ls
+      - name: Output filename 
+        run: echo ${{ needs.build.outputs.script-file }} # this is how you access the output value from the previous job 
+        # ${{ }}: dynamic expressions syntax
       - name: Deploy code
         run: echo "Deploying code"
