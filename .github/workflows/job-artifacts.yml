@@ -1,15 +1,21 @@
 name: Job Artifacts
 on: 
   push: 
-    branches:
-      - main
+    paths: 
+      - 'job-artifacts/**'
   workflow_dispatch:
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: job-artifacts
     steps: 
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: display files
+        run: ls
       - name: Cache dependencies
         uses: actions/cache@v4
         with: 
@@ -24,6 +30,9 @@ jobs:
   build: 
     needs: test 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: job-artifacts
     outputs: 
       script-file: ${{ steps.publish.outputs.js_filename }} # this is the identifier by which you later will be able to access the output value
       # github actions context value: steps is the context above.
@@ -39,6 +48,8 @@ jobs:
         run: npm ci
       - name: Build code
         run: npm run build
+      - name: Display files
+        run: ls
       - name: Publish JS filename
         id: publish
         run: find dist/assets/*.js -type f -execdir echo 'js_filename={}' >> $GITHUB_OUTPUT ';'
@@ -46,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v4 # read more: https://github.com/actions/upload-artifact
         with: 
           name: dist-files 
-          path: dist # path to the folder to upload, can upload multiple folders or files
+          path: ./job-artifacts/dist # path to the folder to upload, can upload multiple folders or files
   deploy: 
     needs: build # only run this job if the build job is successful
     runs-on: ubuntu-latest
