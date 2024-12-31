@@ -4,7 +4,7 @@ on:
     paths: 
       - 'job-artifacts/**'
   workflow_dispatch:
-
+  
 jobs:
   test:
     runs-on: ubuntu-latest
